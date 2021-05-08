@@ -79,7 +79,7 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
             public string Address { get; set; }
 
             [Required]
-            [Display(Name = "PhoneNumber")]
+            [Display(Name = "Phone Number")]
             public string PhoneNumber { get; set; }
         }
 
