@@ -1,5 +1,7 @@
 using LibraryManagement.Data;
 using LibraryManagement.Models;
+using LibraryManagement.Repository.Interfaces;
+using LibraryManagement.Repository.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -44,9 +46,15 @@ namespace LibraryManagement
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            
-            
-            
+
+            services.AddScoped<IAuthorRepository, AuthorRepository>();
+            services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<ICityRepository, CityRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IRequestRepository, RequestRepository>();
+            services.AddScoped<IStockRepository, StockRepository>();
+            services.AddScoped<ISubsidiaryRepository, SubsidiaryRepository>();
+
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             services.AddControllersWithViews();
@@ -79,7 +87,7 @@ namespace LibraryManagement
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Book}/{action=Index}");
                 endpoints.MapRazorPages();
             });
         }
