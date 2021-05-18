@@ -13,7 +13,7 @@ namespace LibraryManagement.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        public string Adress { get; set; }
+        public string Address { get; set; }
         public bool Blacklisted { get; set; }
 
         public City City { get; set; }
