@@ -34,7 +34,7 @@ namespace LibraryManagement.ViewModels
 
         [Required]
         [Display(Name = "City")]
-        public string City { get; set; }
+        public int City { get; set; }
 
         [Required]
         [Display(Name = "Address")]

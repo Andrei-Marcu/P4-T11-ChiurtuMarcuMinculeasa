@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using LibraryManagement.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using LibraryManagement.Repository.Interfaces;
 
 namespace LibraryManagement.Areas.Identity.Pages.Account
 {
@@ -24,17 +26,20 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<RegisterModel> _logger;
+        private readonly ICityRepository _cityRepository;
         //private readonly IEmailSender _emailSender;
 
         public RegisterModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<RegisterModel> logger/*,
-            IEmailSender emailSender*/)
+            ILogger<RegisterModel> logger,
+            ICityRepository cityRepository
+            /*IEmailSender emailSender*/)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _cityRepository = cityRepository;
             //_emailSender = emailSender;
         }
 
@@ -49,6 +54,7 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
         {
             ReturnUrl = returnUrl;
             //ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            ViewData["CityID"] = new SelectList(_cityRepository.FindAll().ToList(), "CityID", "Name");
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
