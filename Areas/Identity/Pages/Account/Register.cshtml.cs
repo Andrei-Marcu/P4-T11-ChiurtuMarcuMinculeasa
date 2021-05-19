@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using LibraryManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using LibraryManagement.Repository.Interfaces;
+using LibraryManagement.Utils.Services;
 
 namespace LibraryManagement.Areas.Identity.Pages.Account
 {
@@ -26,20 +27,20 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly ICityRepository _cityRepository;
+        private readonly ICityService _cityService;
         //private readonly IEmailSender _emailSender;
 
         public RegisterModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             ILogger<RegisterModel> logger,
-            ICityRepository cityRepository
+            ICityService cityService
             /*IEmailSender emailSender*/)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
-            _cityRepository = cityRepository;
+            _cityService = cityService;
             //_emailSender = emailSender;
         }
 
@@ -50,11 +51,11 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
 
         //public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        public async Task OnGetAsync(string returnUrl = null)
+        public void OnGet(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
             //ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            ViewData["CityID"] = new SelectList(_cityRepository.FindAll().ToList(), "CityID", "Name");
+            ViewData["CityID"] = new SelectList(_cityService.GetCitiesWithDefault(), nameof(City.CityID), nameof(City.Name));
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
@@ -67,8 +68,7 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
                     Email = Input.Email,
                     UserName = Input.Username,
                     Name = Input.Name,
-                    //TODO: REQ-1-3: The city field should be a dropdown instead of plain text and server-side validation for the city be within the list.
-                    CityID = 1,
+                    CityID = Input.CityID,
                     Address = Input.Address,
                     PhoneNumber = Input.PhoneNumber,
                     Blacklisted = false

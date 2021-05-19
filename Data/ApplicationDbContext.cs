@@ -22,5 +22,11 @@ namespace LibraryManagement.Data
         public DbSet<Request> Requests { get; set; }
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<Subsidiary> Subsidiaries { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+            builder.Entity<City>().HasData(CityData.Cities);
+        }
     }
 }

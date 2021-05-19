@@ -2,6 +2,7 @@ using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.Repository.Interfaces;
 using LibraryManagement.Repository.Repositories;
+using LibraryManagement.Utils.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -54,6 +55,8 @@ namespace LibraryManagement
             services.AddScoped<IRequestRepository, RequestRepository>();
             services.AddScoped<IStockRepository, StockRepository>();
             services.AddScoped<ISubsidiaryRepository, SubsidiaryRepository>();
+
+            services.AddScoped<ICityService, CityService>();
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 

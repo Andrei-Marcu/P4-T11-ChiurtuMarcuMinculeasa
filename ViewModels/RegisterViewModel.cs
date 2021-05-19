@@ -34,7 +34,8 @@ namespace LibraryManagement.ViewModels
 
         [Required]
         [Display(Name = "City")]
-        public int City { get; set; }
+        [Range(1,int.MaxValue, ErrorMessage = "Please select your city.")]
+        public int CityID { get; set; }
 
         [Required]
         [Display(Name = "Address")]
