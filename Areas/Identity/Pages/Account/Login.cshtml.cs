@@ -83,11 +83,21 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
                     _logger.LogWarning("User account locked out.");
                     return RedirectToPage("./Lockout");
                 }
-                else
+                if (result.IsNotAllowed)
                 {
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                     return Page();
                 }
+
+                if (await _userManager.FindByNameAsync(Input.Username) == null)
+                {
+                    ModelState.AddModelError(string.Empty, "User does not exist");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Wrong Password");
+                }
+                return Page();
             }
 
             // If we got this far, something failed, redisplay form

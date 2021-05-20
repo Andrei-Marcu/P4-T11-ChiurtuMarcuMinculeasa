@@ -106,6 +106,7 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
             }
 
             // If we got this far, something failed, redisplay form
+            ViewData["CityID"] = new SelectList(_cityService.GetCities(), nameof(City.CityID), nameof(City.Name));
             return Page();
         }
     }

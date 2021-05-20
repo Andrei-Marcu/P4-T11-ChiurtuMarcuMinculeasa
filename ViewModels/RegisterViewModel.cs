@@ -34,7 +34,7 @@ namespace LibraryManagement.ViewModels
 
         [Required]
         [Display(Name = "City")]
-        [Range(1,int.MaxValue, ErrorMessage = "Please select your city.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select your city.")]
         public int CityID { get; set; }
 
         [Required]
@@ -43,6 +43,8 @@ namespace LibraryManagement.ViewModels
 
         [Required]
         [Display(Name = "Phone Number")]
+        [StringLength(15, ErrorMessage = "Please enter a valid phone number.", MinimumLength = 10)]
+        [Phone]
         public string PhoneNumber { get; set; }
     }
 }
