@@ -8,17 +8,21 @@ using Microsoft.EntityFrameworkCore;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 namespace LibraryManagement.Controllers
 {
     public class UserController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public UserController(ApplicationDbContext context)
+        public UserController(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
+
 
         // GET: User
         public async Task<IActionResult> Index()
@@ -30,12 +34,16 @@ namespace LibraryManagement.Controllers
         // GET: User/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            User user;
             if (id == null)
             {
-                return NotFound();
+                user = await _userManager.GetUserAsync(User);
+            }
+            else
+            {
+                user = await _context.Users.FindAsync(id);
             }
 
-            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();

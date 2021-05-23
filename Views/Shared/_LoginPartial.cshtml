@@ -3,24 +3,45 @@
 @inject UserManager<User> UserManager
 
 <ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
-{
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">@User.Identity.Name</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Book", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Sign out</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
-    </li>
-}
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            @if (Context.Request.Path.ToString().Equals("/User/Details", StringComparison.OrdinalIgnoreCase) && !Context.Request.Query.ContainsKey("id"))
+            {
+                <a class="nav-link text-black-50">@User.Identity.Name</a>
+            }
+            else
+            {
+                <a class="nav-link text-dark" asp-controller="User" asp-action="Details">@User.Identity.Name</a>
+            }
+        </li>
+        <li class="nav-item">
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Book", new { area = "" })">
+                <button type="submit" class="nav-link btn btn-link text-dark">Sign out</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            @if (Context.Request.Path.ToString().Equals("/Identity/Account/Register", StringComparison.OrdinalIgnoreCase))
+            {
+                <a class="nav-link text-black-50">Sign up</a>
+            }
+            else
+            {
+                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
+            }
+        </li>
+        <li class="nav-item">
+            @if (Context.Request.Path.ToString().Equals("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+            {
+                <a class="nav-link text-black-50">Sign in</a>
+            }
+            else
+            {
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
+            }
+        </li>
+    }
 </ul>
