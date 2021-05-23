@@ -19,10 +19,10 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            @if (Context.Request.Path.ToString().Equals("", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <a class="nav-link text-black-50">Inventory</a>
-                                    }
+                            @if (Context.Request.Path.ToString().Equals("/", StringComparison.OrdinalIgnoreCase))
+                            {
+                                    <a class="nav-link text-black-50">Inventory</a>
+                            }
                             else
                             {
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Inventory</a>
