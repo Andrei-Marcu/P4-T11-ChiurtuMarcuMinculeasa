@@ -27,6 +27,10 @@ namespace LibraryManagement.Data
         {
             base.OnModelCreating(builder);
             builder.Entity<City>().HasData(CityData.Cities);
+            builder.Entity<IdentityRole<int>>().HasData(
+                new IdentityRole<int> { Id = 1, Name = "User", NormalizedName = "User".ToUpper() },
+                new IdentityRole<int> { Id = 2, Name = "Administrator", NormalizedName = "Administrator".ToUpper() }
+            );
         }
     }
 }
