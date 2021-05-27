@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.Repository.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryManagement.Controllers
 {
@@ -22,6 +23,7 @@ namespace LibraryManagement.Controllers
         }
 
         // GET: Book
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             return View(await bookRepository.FindAll().ToListAsync());

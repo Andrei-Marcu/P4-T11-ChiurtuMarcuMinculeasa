@@ -41,6 +41,10 @@ namespace LibraryManagement.Controllers
             }
             else
             {
+                if (!User.IsInRole("Administrator") && _userManager.GetUserId(User) != id.ToString())
+                {
+                    return Forbid();
+                }
                 user = await _context.Users.FindAsync(id);
             }
 
@@ -58,30 +62,6 @@ namespace LibraryManagement.Controllers
                 Address = user.Address,
                 PhoneNumber = user.PhoneNumber
             });
-        }
-
-        // GET: User/Create
-        public IActionResult Create()
-        {
-            ViewData["CityID"] = new SelectList(_context.Cities, "CityID", "Name");
-            return View();
-        }
-
-        // POST: User/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CityID,Name,Address,Blacklisted,Id,UserName,NormalizedUserName,Email,NormalizedEmail,EmailConfirmed,PasswordHash,SecurityStamp,ConcurrencyStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEnd,LockoutEnabled,AccessFailedCount")] User user)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CityID"] = new SelectList(_context.Cities, "CityID", "Name", user.CityID);
-            return View(user);
         }
 
         // GET: User/Edit/5

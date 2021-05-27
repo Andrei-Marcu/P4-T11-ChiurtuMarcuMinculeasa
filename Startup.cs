@@ -1,10 +1,13 @@
+using LibraryManagement.Controllers;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.Repository.Interfaces;
 using LibraryManagement.Repository.Repositories;
 using LibraryManagement.Utils.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
@@ -44,6 +47,12 @@ namespace LibraryManagement
                 options.Password.RequireDigit = true;
             });
 
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = new PathString("/Identity/Account/Login");
+                options.AccessDeniedPath = new PathString("/Identity/Account/AccessDenied");
+            });
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
@@ -62,6 +71,12 @@ namespace LibraryManagement
 
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -85,6 +100,9 @@ namespace LibraryManagement
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseStatusCodePages();
+            //app.UseStatusCodePagesWithRedirects("/Home/Error");
 
             app.UseEndpoints(endpoints =>
             {
