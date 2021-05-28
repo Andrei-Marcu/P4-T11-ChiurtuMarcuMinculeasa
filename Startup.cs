@@ -34,18 +34,16 @@ namespace LibraryManagement
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddIdentity<User, IdentityRole<int>>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            services.Configure<IdentityOptions>(options =>
-            {
+            services.AddIdentity<User, IdentityRole<int>>(options => {
                 options.Password.RequiredLength = 6;
                 options.Password.RequiredUniqueChars = 1;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireDigit = true;
-            });
+                options.User.RequireUniqueEmail = true;
+            })
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -64,6 +62,7 @@ namespace LibraryManagement
             services.AddScoped<IRequestRepository, RequestRepository>();
             services.AddScoped<IStockRepository, StockRepository>();
             services.AddScoped<ISubsidiaryRepository, SubsidiaryRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<ICityService, CityService>();
 

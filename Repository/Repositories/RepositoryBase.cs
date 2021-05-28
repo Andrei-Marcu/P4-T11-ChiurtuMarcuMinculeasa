@@ -18,34 +18,39 @@ namespace LibraryManagement.Repository.Repositories
             this.DbContext = DbContext;
         }
 
-        public IQueryable<T> FindAll()
+        public virtual IQueryable<T> FindAll()
         {
             return DbContext.Set<T>().AsNoTracking();
         }
 
-        public IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression)
+        public virtual IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression)
         {
             return DbContext.Set<T>().Where(expression).AsNoTracking();
         }
 
-        public void Create(T entity)
+        public virtual void Create(T entity)
         {
             DbContext.Set<T>().Add(entity);
         }
 
-        public void Update(T entity)
+        public virtual void Update(T entity)
         {
             DbContext.Set<T>().Update(entity);
         }
 
-        public void Delete(T entity)
+        public virtual void Delete(T entity)
         {
             DbContext.Set<T>().Remove(entity);
         }
 
-        public void Save()
+        public virtual void Save()
         {
             DbContext.SaveChanges();
+        }
+
+        public virtual void Reload(T entity)
+        {
+            DbContext.Entry(entity).Reload();
         }
     }
 }

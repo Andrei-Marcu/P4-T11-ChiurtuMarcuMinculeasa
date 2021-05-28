@@ -91,11 +91,11 @@ namespace LibraryManagement.Areas.Identity.Pages.Account
 
                 if (await _userManager.FindByNameAsync(Input.Username) == null)
                 {
-                    ModelState.AddModelError(string.Empty, "User does not exist");
+                    ModelState.AddModelError("Input.Username", "User does not exist");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Wrong Password");
+                    ModelState.AddModelError("Input.Password", "Wrong Password");
                 }
                 return Page();
             }

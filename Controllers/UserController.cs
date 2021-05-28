@@ -9,26 +9,22 @@ using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using LibraryManagement.Utils.Services;
+using LibraryManagement.Repository.Interfaces;
 
 namespace LibraryManagement.Controllers
 {
     public class UserController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly ICityService _cityService;
+        private readonly IUserRepository _userRepository;
 
-        public UserController(ApplicationDbContext context, UserManager<User> userManager)
+        public UserController(UserManager<User> userManager, ICityService cityService, IUserRepository userRepository)
         {
-            _context = context;
             _userManager = userManager;
-        }
-
-
-        // GET: User
-        public async Task<IActionResult> Index()
-        {
-            var applicationDbContext = _context.Users.Include(u => u.City);
-            return View(await applicationDbContext.ToListAsync());
+            _cityService = cityService;
+            _userRepository = userRepository;
         }
 
         // GET: User/Details/5
@@ -38,6 +34,7 @@ namespace LibraryManagement.Controllers
             if (id == null)
             {
                 user = await _userManager.GetUserAsync(User);
+                ViewBag.id = user.Id;
             }
             else
             {
@@ -45,14 +42,15 @@ namespace LibraryManagement.Controllers
                 {
                     return Forbid();
                 }
-                user = await _context.Users.FindAsync(id);
+                ViewBag.id = id;
+                user = await _userManager.FindByIdAsync(id.ToString());
             }
 
             if (user == null)
             {
                 return NotFound();
             }
-            ViewData["CityID"] = new SelectList(_context.Cities, "CityID", "Name", user.CityID);
+            ViewData["CityID"] = new SelectList(_cityService.GetCities(), nameof(City.CityID), nameof(City.Name));
             return View(new UserViewModel()
             {
                 Email = user.Email,
@@ -71,14 +69,19 @@ namespace LibraryManagement.Controllers
             {
                 return NotFound();
             }
+            if (!User.IsInRole("Administrator") && _userManager.GetUserId(User) != id.ToString())
+            {
+                return Forbid();
+            }
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return NotFound();
             }
-            ViewData["CityID"] = new SelectList(_context.Cities, "CityID", "Name", user.CityID);
-            return View(new UserViewModel() { 
+            ViewData["CityID"] = new SelectList(_cityService.GetCities(), nameof(City.CityID), nameof(City.Name));
+            return View(new UserViewModel()
+            {
                 Email = user.Email,
                 Username = user.UserName,
                 Name = user.Name,
@@ -92,71 +95,98 @@ namespace LibraryManagement.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, /*[Bind("CityID,Name,Address,Blacklisted,Id,UserName,NormalizedUserName,Email,NormalizedEmail,EmailConfirmed,PasswordHash,SecurityStamp,ConcurrencyStamp,PhoneNumber,PhoneNumberConfirmed,TwoFactorEnabled,LockoutEnd,LockoutEnabled,AccessFailedCount")]*/ UserViewModel user)
+        public async Task<IActionResult> Edit(int id, UserViewModel userVM)
         {
-            /*if (id != user.Id)
+            //Check permission
+            if (!User.IsInRole("Administrator") && _userManager.GetUserId(User) != id.ToString())
             {
-                return NotFound();
-            }*/
+                return Forbid();
+            }
 
             if (ModelState.IsValid)
             {
-                try
+                var user = await _userManager.FindByIdAsync(id.ToString());
+                if (user == null)
                 {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
+
+                //Check current password
+                if (!await _userManager.CheckPasswordAsync(user, userVM.CurrentPassword))
                 {
-                    if (!UserExists(id))
+                    ModelState.AddModelError(nameof(UserViewModel.CurrentPassword), "Wrong password");
+                    goto fail;
+                }
+
+                //Do we have a new password?
+                if (!string.IsNullOrEmpty(userVM.Password))
+                {
+                    var passResult = await _userManager.ChangePasswordAsync(user, userVM.CurrentPassword, userVM.Password);
+                    if (!passResult.Succeeded)
                     {
-                        return NotFound();
+                        foreach (var err in passResult.Errors)
+                        {
+                            ModelState.AddModelError(nameof(UserViewModel.Password), err.Description);
+                        }
+                        goto fail;
                     }
-                    else
+
+                    //updating and checking if we failed
+                    if (!await updateDetails(user, userVM))
                     {
-                        throw;
+                        //force reload from the database!!!
+                        _userRepository.Reload(user);
+
+                        var passResult2 = await _userManager.ChangePasswordAsync(user, userVM.Password, userVM.CurrentPassword);
+                        if (!passResult2.Succeeded)
+                        {
+                            foreach (var err in passResult.Errors)
+                            {
+                                ModelState.AddModelError(String.Empty, err.Description);
+                            }
+                            goto fail;
+                        }
+                        goto fail;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                //updating without new password
+                else
+                {
+                    if (!await updateDetails(user, userVM))
+                    {
+                        goto fail;
+                    }
+                }
+                return RedirectToAction(nameof(Details), id);
             }
-            ViewData["CityID"] = new SelectList(_context.Cities, "CityID", "Name", user.CityID);
-            return View(user);
+        fail:
+            ViewData["CityID"] = new SelectList(_cityService.GetCities(), nameof(City.CityID), nameof(City.Name));
+            return View(userVM);
         }
 
-        // GET: User/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        async Task<bool> updateDetails(User user, UserViewModel userVM)
         {
-            if (id == null)
+            user.Email = userVM.Email;
+            user.UserName = userVM.Username;
+            user.Name = userVM.Name;
+            user.CityID = userVM.CityID;
+            user.Address = userVM.Address;
+            user.PhoneNumber = userVM.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
             {
-                return NotFound();
+                return true;
             }
-
-            var user = await _context.Users
-                .Include(u => u.City)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (user == null)
+            else
             {
-                return NotFound();
+                foreach (var err in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, err.Description);
+                }
+                return false;
             }
-
-            return View(user);
-        }
-
-        // POST: User/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
         }
     }
 }

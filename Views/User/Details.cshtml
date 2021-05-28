@@ -15,57 +15,43 @@
             <div class="form-group">
                 <label asp-for="Email" class="control-label"></label>
                 <input asp-for="Email" disabled type="text" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Username" class="control-label"></label>
                 <input asp-for="Username" disabled type="text" class="form-control" />
-                <span asp-validation-for="Username" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" disabled type="text" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CityID" class="control-label"></label>
                 <select asp-for="CityID" disabled type="text" class="form-control" asp-items="ViewBag.CityID"></select>
-                <span asp-validation-for="CityID" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Address" class="control-label"></label>
                 <input asp-for="Address" disabled type="text" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="PhoneNumber" class="control-label"></label>
                 <input asp-for="PhoneNumber" disabled type="text" class="form-control" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Password"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <input asp-for="Password" disabled class="form-control" />
             </div>
             <div class="form-group">
                 <label asp-for="ConfirmPassword"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                <input asp-for="ConfirmPassword" disabled class="form-control" />
             </div>
             <div class="form-group">
                 <label asp-for="CurrentPassword"></label>
-                <input asp-for="CurrentPassword" class="form-control" />
-                <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                <input asp-for="CurrentPassword" disabled class="form-control" />
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
+                <a asp-action="Edit" asp-route-id="@ViewBag.id" class="btn btn-primary" >Edit</a>
         </form>
+        
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
