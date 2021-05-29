@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryManagement.Controllers
 {
@@ -20,6 +21,7 @@ namespace LibraryManagement.Controllers
         }
 
         // GET: Request
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Requests.Include(r => r.Book).Include(r => r.Subsidiary).Include(r => r.User).OrderByDescending(r => r.RequestDate);
