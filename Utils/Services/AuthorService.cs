@@ -25,7 +25,9 @@ namespace LibraryManagement.Utils.Services
                 var author = _authorRepository.FindByCondition(author => author.Name == name).FirstOrDefault();
                 if(author == null)
                 {
-                    //TODO:REQ-2-11
+                    author = new Author() { Name = name };
+                    _authorRepository.Create(author);
+                    author = _authorRepository.FindByCondition(author => author.Name == name).FirstOrDefault();
                 }
                 else
                 {
