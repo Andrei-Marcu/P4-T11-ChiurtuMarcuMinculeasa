@@ -31,6 +31,8 @@ namespace LibraryManagement.Data
                 new IdentityRole<int> { Id = 1, Name = "User", NormalizedName = "User".ToUpper() },
                 new IdentityRole<int> { Id = 2, Name = "Administrator", NormalizedName = "Administrator".ToUpper() }
             );
+
+            builder.Entity<Stock>().HasKey(stock => new { stock.BookID, stock.SubsidiaryID });
         }
     }
 }

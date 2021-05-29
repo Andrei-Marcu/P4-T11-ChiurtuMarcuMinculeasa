@@ -9,24 +9,29 @@ using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.Repository.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using LibraryManagement.ViewModels;
+using LibraryManagement.Utils.Services;
 
 namespace LibraryManagement.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     public class BookController : Controller
     {
         //private readonly ApplicationDbContext _context;
-        private readonly IBookRepository bookRepository;
+        private readonly IBookRepository _bookRepository;
+        private readonly IAuthorService _authorService;
 
-        public BookController(IBookRepository bookRepository)
+        public BookController(IBookRepository bookRepository, IAuthorService authorService)
         {
-            this.bookRepository = bookRepository;
+            _bookRepository = bookRepository;
+            _authorService = authorService;
         }
 
         // GET: Book
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            return View(await bookRepository.FindAll().ToListAsync());
+            return View(await _bookRepository.FindAll().ToListAsync());
         }
 
         // GET: Book/Details/5
@@ -37,7 +42,7 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var book = await bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
+            var book = await _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
             if (book == null)
             {
                 return NotFound();
@@ -57,15 +62,21 @@ namespace LibraryManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("BookID,Publisher,Title")] Book book)
+        public IActionResult Create(BookViewModel bookVM)
         {
             if (ModelState.IsValid)
             {
-                bookRepository.Create(book);
-                bookRepository.Save();
+                Book book = new Book()
+                {
+                    Title = bookVM.Title,
+                    Publisher = bookVM.Publisher,
+                    Authors = _authorService.parseAuthors(bookVM.Authors)
+                };
+                _bookRepository.Create(book);
+                _bookRepository.Save();
                 return RedirectToAction(nameof(Index));
             }
-            return View(book);
+            return View(bookVM);
         }
 
         // GET: Book/Edit/5
@@ -76,7 +87,7 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var book = await bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
+            var book = await _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
             if (book == null)
             {
                 return NotFound();
@@ -100,12 +111,12 @@ namespace LibraryManagement.Controllers
             {
                 try
                 {
-                    bookRepository.Update(book);
-                    bookRepository.Save();
+                    _bookRepository.Update(book);
+                    _bookRepository.Save();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!await bookRepository.FindByCondition(m => m.BookID == id).AnyAsync())
+                    if (!await _bookRepository.FindByCondition(m => m.BookID == id).AnyAsync())
                     {
                         return NotFound();
                     }
@@ -127,7 +138,7 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var book = bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefault();
+            var book = _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefault();
             if (book == null)
             {
                 return NotFound();
@@ -138,12 +149,12 @@ namespace LibraryManagement.Controllers
 
         // POST: Book/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var book = await bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
-            bookRepository.Delete(book);
-            bookRepository.Save();
+            var book = await _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
+            _bookRepository.Delete(book);
+            _bookRepository.Save();
             return RedirectToAction(nameof(Index));
         }
     }
