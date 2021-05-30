@@ -14,5 +14,15 @@ namespace LibraryManagement.Repository.Repositories
         public AuthorRepository(ApplicationDbContext DbContext) : base(DbContext)
         {
         }
+
+        public override IQueryable<Author> FindAll()
+        {
+            return DbContext.Set<Author>();
+        }
+
+        public override IQueryable<Author> FindByCondition(Expression<Func<Author, bool>> expression)
+        {
+            return DbContext.Set<Author>().Where(expression);
+        }
     }
 }

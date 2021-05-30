@@ -9,5 +9,6 @@ namespace LibraryManagement.Utils.Services
     public interface IAuthorService
     {
         ICollection<Author> parseAuthors(string authorsString);
+        string stringifyAuthors(ICollection<Author> authors);
     }
 }

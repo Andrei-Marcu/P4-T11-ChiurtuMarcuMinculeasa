@@ -8,16 +8,23 @@ using Microsoft.EntityFrameworkCore;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
 using Microsoft.AspNetCore.Authorization;
+using LibraryManagement.Utils.Services;
+using LibraryManagement.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 namespace LibraryManagement.Controllers
 {
     public class RequestController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISubsidiaryService _subsidiaryService;
+        private readonly UserManager<User> _userManager;
 
-        public RequestController(ApplicationDbContext context)
+        public RequestController(ApplicationDbContext context, ISubsidiaryService subsidiaryService, UserManager<User> userManager)
         {
             _context = context;
+            _subsidiaryService = subsidiaryService;
+            _userManager = userManager;
         }
 
         // GET: Request
@@ -50,11 +57,9 @@ namespace LibraryManagement.Controllers
         }
 
         // GET: Request/Create
-        public IActionResult Create()
+        public IActionResult Create(int id)
         {
-            ViewData["BookID"] = new SelectList(_context.Books, "BookID", "Publisher");
-            ViewData["SubsidiaryID"] = new SelectList(_context.Subsidiaries, "SubsidiaryID", "Address");
-            ViewData["UserID"] = new SelectList(_context.Users, "Id", "Address");
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address");
             return View();
         }
 
@@ -62,38 +67,56 @@ namespace LibraryManagement.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("RequestID,UserID,BookID,SubsidiaryID,RequestDate,BorrowDate,ReturnDeadline,ReturnDate,Status")] Request request)
+        public async Task<IActionResult> Create(int id, RequestViewModel requestVM)
         {
+            //TODO:check if book exists first
+
             if (ModelState.IsValid)
             {
+                var request = new Request()
+                {
+                    UserID = int.Parse(_userManager.GetUserId(User)),
+                    BookID = id,
+                    SubsidiaryID = requestVM.SubsidiaryID,
+                    RequestDate = requestVM.RequestDate,
+                    Status = 0
+                };
+
                 _context.Add(request);
+                //TODO: messages
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookID"] = new SelectList(_context.Books, "BookID", "Publisher", request.BookID);
-            ViewData["SubsidiaryID"] = new SelectList(_context.Subsidiaries, "SubsidiaryID", "Address", request.SubsidiaryID);
-            ViewData["UserID"] = new SelectList(_context.Users, "Id", "Address", request.UserID);
-            return View(request);
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address", requestVM.SubsidiaryID);
+            return View(requestVM);
         }
 
         // GET: Request/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var request = await _context.Requests.FindAsync(id);
             if (request == null)
             {
                 return NotFound();
             }
-            ViewData["BookID"] = new SelectList(_context.Books, "BookID", "Publisher", request.BookID);
-            ViewData["SubsidiaryID"] = new SelectList(_context.Subsidiaries, "SubsidiaryID", "Address", request.SubsidiaryID);
-            ViewData["UserID"] = new SelectList(_context.Users, "Id", "Address", request.UserID);
-            return View(request);
+            var requestVM = new RequestViewModel()
+            {
+                UserID = request.UserID,
+                BookID = request.BookID,
+                SubsidiaryID = request.SubsidiaryID,
+                RequestDate = request.RequestDate,
+                BorrowDate = request.BorrowDate,
+                ReturnDeadline = request.ReturnDeadline,
+                ReturnDate = request.ReturnDate,
+                Status = request.Status,
+                Message = string.Empty,
+                Messages = request.Messages
+            };
+
+
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address", requestVM.SubsidiaryID);
+            return View(requestVM);
         }
 
         // POST: Request/Edit/5
@@ -101,37 +124,24 @@ namespace LibraryManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("RequestID,UserID,BookID,SubsidiaryID,RequestDate,BorrowDate,ReturnDeadline,ReturnDate,Status")] Request request)
+        public async Task<IActionResult> Edit(int id, RequestViewModel requestVM)
         {
-            if (id != request.RequestID)
+            if (!RequestExists(id))
             {
                 return NotFound();
             }
-
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(request);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!RequestExists(request.RequestID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                var request = _context.Requests.Find(id);
+
+                //TODO
+
+                _context.Requests.Update(request);
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BookID"] = new SelectList(_context.Books, "BookID", "Publisher", request.BookID);
-            ViewData["SubsidiaryID"] = new SelectList(_context.Subsidiaries, "SubsidiaryID", "Address", request.SubsidiaryID);
-            ViewData["UserID"] = new SelectList(_context.Users, "Id", "Address", request.UserID);
-            return View(request);
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address", requestVM.SubsidiaryID);
+            return View(requestVM);
         }
 
         // GET: Request/Delete/5

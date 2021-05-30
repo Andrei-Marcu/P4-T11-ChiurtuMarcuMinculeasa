@@ -3,6 +3,7 @@ using LibraryManagement.Repository.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LibraryManagement.Utils.Services
@@ -26,15 +27,15 @@ namespace LibraryManagement.Utils.Services
                 if(author == null)
                 {
                     author = new Author() { Name = name };
-                    _authorRepository.Create(author);
-                    author = _authorRepository.FindByCondition(author => author.Name == name).FirstOrDefault();
                 }
-                else
-                {
-                    authors.Add(author);
-                }
+                authors.Add(author);
             }
             return authors;
+        }
+
+        public string stringifyAuthors(ICollection<Author> authors)
+        {
+            return String.Join(", ", authors.Select(author => author.Name));
         }
     }
 }

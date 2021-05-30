@@ -66,6 +66,7 @@ namespace LibraryManagement
 
             services.AddScoped<ICityService, CityService>();
             services.AddScoped<IAuthorService, AuthorService>();
+            services.AddScoped<ISubsidiaryService, SubsidiaryService>();
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 

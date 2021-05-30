@@ -87,12 +87,25 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var book = await _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
+            var book = await _bookRepository.FindByCondition(m => m.BookID == id)
+                .Include(m => m.Authors).Include(m => m.Stocks).FirstOrDefaultAsync();
             if (book == null)
             {
                 return NotFound();
             }
-            return View(book);
+            BookViewModel bookVM = new BookViewModel()
+            {
+                Title = book.Title,
+                Publisher = book.Publisher,
+                Authors = _authorService.stringifyAuthors(book.Authors),
+                Stocks = book.Stocks.Select(stock => new StockViewModel()
+                {
+                    Borrowed = stock.Borrowed,
+                    Total = stock.Total,
+                    SubsidiaryID = stock.SubsidiaryID
+                })
+            };
+            return View(bookVM);
         }
 
         // POST: Book/Edit/5
@@ -100,34 +113,63 @@ namespace LibraryManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookID,Publisher,Title")] Book book)
+        public async Task<IActionResult> Edit(int id, BookViewModel bookVM)
         {
-            if (id != book.BookID)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                try
+                Book book = _bookRepository.FindByCondition(m => m.BookID == id)
+                    .Include(m => m.Stocks).FirstOrDefault();
+
+                if(book == null)
                 {
-                    _bookRepository.Update(book);
-                    _bookRepository.Save();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
+
+                book.Title = bookVM.Title;
+                book.Publisher = bookVM.Publisher;
+                book.Authors = _authorService.parseAuthors(bookVM.Authors);
+
+                List<Stock> toAdd = new List<Stock>();
+                bool error = false;
+
+                foreach(var stockVM in bookVM.Stocks)
                 {
-                    if (!await _bookRepository.FindByCondition(m => m.BookID == id).AnyAsync())
+                    stockVM.Error = false;
+
+                    var stock = book.Stocks
+                        .Where(s => s.SubsidiaryID == stockVM.SubsidiaryID).FirstOrDefault();
+                    if(stock == null)
                     {
-                        return NotFound();
+                        toAdd.Add(new Stock()
+                        {
+                            //BookID = id,
+                            SubsidiaryID = stockVM.SubsidiaryID,
+                            Total = stockVM.Total
+                        });
                     }
                     else
                     {
-                        throw;
+                        if(stockVM.Total < stock.Borrowed)
+                        {
+                            error = true;
+                            stockVM.Error = true;
+                            stockVM.Total = stock.Borrowed;
+                        }
                     }
                 }
+                if (error) {
+                    return View();
+                }
+                foreach(var stock in toAdd)
+                {
+                    book.Stocks.Add(stock);
+                }
+
+                _bookRepository.Update(book);
+                _bookRepository.Save();
                 return RedirectToAction(nameof(Index));
             }
-            return View(book);
+            return View(bookVM);
         }
 
         // GET: Book/Delete/5
@@ -144,17 +186,9 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            return View(book);
-        }
-
-        // POST: Book/Delete/5
-        [HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var book = await _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
             _bookRepository.Delete(book);
             _bookRepository.Save();
+
             return RedirectToAction(nameof(Index));
         }
     }

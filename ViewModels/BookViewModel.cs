@@ -14,6 +14,6 @@ namespace LibraryManagement.ViewModels
         public string Title { get; set; }
         [Required]
         public string Authors { get; set; }
-        public ICollection<StockViewModel> Stocks { get; set; }
+        public IEnumerable<StockViewModel> Stocks { get; set; }
     }
 }
