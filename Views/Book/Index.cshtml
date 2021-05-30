@@ -14,15 +14,31 @@
     </div>
     @foreach (var item in Model)
     {
-        <a asp-action="Edit" asp-route-id="@item.BookID">
-            <div class="grid-book-item">
-                @Html.DisplayFor(modelItem => item.Title)
-                <br>
-                @Html.DisplayFor(modelItem => item.Authors)
-                <br>
-                @Html.DisplayFor(modelItem => item.Publisher)
+        @if (User.IsInRole("Administrator"))
+        {
+            <a asp-action="Edit" asp-route-id="@item.BookID">
+                <div class="grid-book-item">
+                    @Html.DisplayFor(modelItem => item.Title)
+                    <br>
+                    @Html.DisplayFor(modelItem => item.Authors)
+                    <br>
+                    @Html.DisplayFor(modelItem => item.Publisher)
 
-            </div>
-        </a>
-            }
-    </div>
+                </div>
+            </a>
+        }
+        else
+        {
+            <a asp-area="" asp-controller="Request" asp-action="Create" asp-route-id="@item.BookID">
+                <div class="grid-book-item">
+                    @Html.DisplayFor(modelItem => item.Title)
+                    <br>
+                    @Html.DisplayFor(modelItem => item.Authors)
+                    <br>
+                    @Html.DisplayFor(modelItem => item.Publisher)
+
+                </div>
+            </a>
+        }
+    }
+</div>
