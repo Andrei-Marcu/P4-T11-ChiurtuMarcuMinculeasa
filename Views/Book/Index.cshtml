@@ -13,19 +13,16 @@
         </p>
     </div>
     @foreach (var item in Model)
-     {
-         <div class="grid-book-item">
-             @Html.DisplayFor(modelItem => item.Title)
-             <br>
-             @Html.DisplayFor(modelItem => item.Authors)
-             <br>
-             @Html.DisplayFor(modelItem => item.Publisher)
+    {
+        <a asp-action="Edit" asp-route-id="@item.BookID">
+            <div class="grid-book-item">
+                @Html.DisplayFor(modelItem => item.Title)
+                <br>
+                @Html.DisplayFor(modelItem => item.Authors)
+                <br>
+                @Html.DisplayFor(modelItem => item.Publisher)
 
-             <p>
-                 <a asp-action="Edit" asp-route-id="@item.BookID">Edit</a> |
-                 <a asp-action="Details" asp-route-id="@item.BookID">Details</a> |
-                 <a asp-action="Delete" asp-route-id="@item.BookID">Delete</a>
-             </p>
-         </div>
-     }
+            </div>
+        </a>
+            }
     </div>
