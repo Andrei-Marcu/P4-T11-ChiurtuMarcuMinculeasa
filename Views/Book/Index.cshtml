@@ -4,60 +4,28 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Book Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-
-<!--
-    <table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Publisher)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Publisher)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.BookID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.BookID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.BookID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
-
--->
 <div class="grid-book-container">
+    <div class="grid-book-item">
+        <p>
+            <a asp-action="Create">Add Book</a>
+        </p>
+    </div>
     @foreach (var item in Model)
-    {
-        <div class="grid-book-item">
-            @Html.DisplayFor(modelItem => item.Title)
-            <br>
-            @Html.DisplayFor(modelItem => item.Authors)
-            <br>
-            @Html.DisplayFor(modelItem => item.Publisher)
+     {
+         <div class="grid-book-item">
+             @Html.DisplayFor(modelItem => item.Title)
+             <br>
+             @Html.DisplayFor(modelItem => item.Authors)
+             <br>
+             @Html.DisplayFor(modelItem => item.Publisher)
 
-            <p>
-                <a asp-action="Edit" asp-route-id="@item.BookID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.BookID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.BookID">Delete</a>
-            </p>
-        </div>
-    }
-</div>
+             <p>
+                 <a asp-action="Edit" asp-route-id="@item.BookID">Edit</a> |
+                 <a asp-action="Details" asp-route-id="@item.BookID">Details</a> |
+                 <a asp-action="Delete" asp-route-id="@item.BookID">Delete</a>
+             </p>
+         </div>
+     }
+    </div>
