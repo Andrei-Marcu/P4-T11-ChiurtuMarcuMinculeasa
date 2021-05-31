@@ -11,27 +11,43 @@ using Microsoft.AspNetCore.Authorization;
 using LibraryManagement.Utils.Services;
 using LibraryManagement.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using LibraryManagement.Repository.Interfaces;
 
 namespace LibraryManagement.Controllers
 {
+    [Authorize]
     public class RequestController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context;
+        private readonly IRequestRepository _requestRepository;
+        private readonly IMessageRepository _messageRepository;
+        private readonly IBookRepository _bookRepository;
         private readonly ISubsidiaryService _subsidiaryService;
+        private readonly IStatusService _statusService;
         private readonly UserManager<User> _userManager;
 
-        public RequestController(ApplicationDbContext context, ISubsidiaryService subsidiaryService, UserManager<User> userManager)
+        public RequestController(IRequestRepository requestRepository,
+            IMessageRepository messageRepository,
+            IBookRepository bookRepository,
+            ISubsidiaryService subsidiaryService,
+            IStatusService statusService,
+            UserManager<User> userManager)
         {
-            _context = context;
+            _requestRepository = requestRepository;
+            _messageRepository = messageRepository;
+            _bookRepository = bookRepository;
             _subsidiaryService = subsidiaryService;
+            _statusService = statusService;
             _userManager = userManager;
         }
+
+
 
         // GET: Request
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Requests.Include(r => r.Book).Include(r => r.Subsidiary).Include(r => r.User).OrderByDescending(r => r.RequestDate);
+            var applicationDbContext = _requestRepository.FindAll().Include(r => r.Book).Include(r => r.Subsidiary).Include(r => r.User).OrderByDescending(r => r.RequestDate);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -43,11 +59,11 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var request = await _context.Requests
+            var request = await _requestRepository.FindByCondition(m => m.RequestID == id)
                 .Include(r => r.Book)
                 .Include(r => r.Subsidiary)
                 .Include(r => r.User)
-                .FirstOrDefaultAsync(m => m.RequestID == id);
+                .FirstOrDefaultAsync();
             if (request == null)
             {
                 return NotFound();
@@ -59,7 +75,7 @@ namespace LibraryManagement.Controllers
         // GET: Request/Create
         public IActionResult Create(int id)
         {
-            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address");
+            ViewBag.SubsidiaryID = new SelectList(_subsidiaryService.getSubsidiariesList(), "Key", "Value");
             return View();
         }
 
@@ -69,7 +85,10 @@ namespace LibraryManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(int id, RequestViewModel requestVM)
         {
-            //TODO:check if book exists first
+            if(!_bookRepository.FindByCondition(b => b.BookID == id).Any())
+            {
+                return NotFound();
+            }
 
             if (ModelState.IsValid)
             {
@@ -78,34 +97,40 @@ namespace LibraryManagement.Controllers
                     UserID = int.Parse(_userManager.GetUserId(User)),
                     BookID = id,
                     SubsidiaryID = requestVM.SubsidiaryID,
-                    RequestDate = requestVM.RequestDate,
+                    RequestDate = DateTime.Now,
                     Status = 0
                 };
 
-                _context.Add(request);
-                //TODO: messages
+                _requestRepository.Create(request);
+                _requestRepository.Save();
 
-                await _context.SaveChangesAsync();
+                leaveMessage(request, requestVM.Message);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address", requestVM.SubsidiaryID);
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "Key", "Value", requestVM.SubsidiaryID);
             return View(requestVM);
         }
 
         // GET: Request/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var request = await _context.Requests.FindAsync(id);
+            var request = await _requestRepository.FindByCondition(m => m.RequestID == id)
+                .Include(m => m.User).Include(m => m.Book).FirstOrDefaultAsync();
             if (request == null)
             {
                 return NotFound();
             }
+
+            if (!User.IsInRole("Administrator") && _userManager.GetUserId(User) != request.UserID.ToString())
+            {
+                return Forbid();
+            }
+
             var requestVM = new RequestViewModel()
             {
-                UserID = request.UserID,
-                BookID = request.BookID,
+                User = request.User,
+                Book = request.Book,
                 SubsidiaryID = request.SubsidiaryID,
-                RequestDate = request.RequestDate,
                 BorrowDate = request.BorrowDate,
                 ReturnDeadline = request.ReturnDeadline,
                 ReturnDate = request.ReturnDate,
@@ -115,7 +140,7 @@ namespace LibraryManagement.Controllers
             };
 
 
-            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address", requestVM.SubsidiaryID);
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "Key", "Value", requestVM.SubsidiaryID);
             return View(requestVM);
         }
 
@@ -126,21 +151,35 @@ namespace LibraryManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, RequestViewModel requestVM)
         {
-            if (!RequestExists(id))
+            var request = await _requestRepository.FindByCondition(m => m.RequestID == id)
+                .Include(m => m.User).Include(m => m.Book).FirstOrDefaultAsync();
+            if (request == null)
             {
                 return NotFound();
             }
+            if (!User.IsInRole("Administrator") && _userManager.GetUserId(User) != request.UserID.ToString())
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
-                var request = _context.Requests.Find(id);
+                request.SubsidiaryID = requestVM.SubsidiaryID;
+                request.BorrowDate = requestVM.BorrowDate;
+                request.ReturnDeadline = requestVM.ReturnDeadline;
+                request.ReturnDate = requestVM.ReturnDate;
 
-                //TODO
+                _requestRepository.Update(request);
+                _requestRepository.Save();
 
-                _context.Requests.Update(request);
-                _context.SaveChanges();
+                leaveMessage(request, requestVM.Message);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "SubsidiaryID", "Address", requestVM.SubsidiaryID);
+
+            requestVM.User = request.User;
+            requestVM.Book = request.Book;
+            requestVM.Messages = request.Messages;
+            ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "Key", "Value", requestVM.SubsidiaryID);
             return View(requestVM);
         }
 
@@ -152,11 +191,11 @@ namespace LibraryManagement.Controllers
                 return NotFound();
             }
 
-            var request = await _context.Requests
+            var request = await _requestRepository.FindByCondition(m => m.RequestID == id)
                 .Include(r => r.Book)
                 .Include(r => r.Subsidiary)
                 .Include(r => r.User)
-                .FirstOrDefaultAsync(m => m.RequestID == id);
+                .FirstOrDefaultAsync();
             if (request == null)
             {
                 return NotFound();
@@ -170,15 +209,26 @@ namespace LibraryManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var request = await _context.Requests.FindAsync(id);
-            _context.Requests.Remove(request);
-            await _context.SaveChangesAsync();
+            var request = await _requestRepository.FindByCondition(m => m.RequestID == id).FirstOrDefaultAsync();
+            _requestRepository.Delete(request);
+            _requestRepository.Save();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool RequestExists(int id)
+        void leaveMessage(Request request, string message)
         {
-            return _context.Requests.Any(e => e.RequestID == id);
+            if (!String.IsNullOrEmpty(message))
+            {
+                _messageRepository.Create(new Message()
+                {
+                    UserID = int.Parse(_userManager.GetUserId(User)),
+                    RequestID = request.RequestID,
+                    Date = DateTime.Now,
+                    Status = request.Status,
+                    Content = message
+                });
+                _messageRepository.Save();
+            }
         }
     }
 }

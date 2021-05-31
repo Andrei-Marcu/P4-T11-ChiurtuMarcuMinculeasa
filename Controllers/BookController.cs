@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using LibraryManagement.Models;
+using LibraryManagement.Repository.Interfaces;
+using LibraryManagement.Utils.Services;
+using LibraryManagement.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using LibraryManagement.Data;
-using LibraryManagement.Models;
-using LibraryManagement.Repository.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using LibraryManagement.ViewModels;
-using LibraryManagement.Utils.Services;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LibraryManagement.Controllers
 {
@@ -20,35 +18,20 @@ namespace LibraryManagement.Controllers
         //private readonly ApplicationDbContext _context;
         private readonly IBookRepository _bookRepository;
         private readonly IAuthorService _authorService;
+        private readonly ISubsidiaryService _subsidiaryService;
 
-        public BookController(IBookRepository bookRepository, IAuthorService authorService)
+        public BookController(IBookRepository bookRepository, IAuthorService authorService, ISubsidiaryService subsidiaryService)
         {
             _bookRepository = bookRepository;
             _authorService = authorService;
+            _subsidiaryService = subsidiaryService;
         }
 
         // GET: Book
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            return View(await _bookRepository.FindAll().ToListAsync());
-        }
-
-        // GET: Book/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var book = await _bookRepository.FindByCondition(m => m.BookID == id).FirstOrDefaultAsync();
-            if (book == null)
-            {
-                return NotFound();
-            }
-
-            return View(book);
+            return View(await _bookRepository.FindAll().Include(b => b.Authors).ToListAsync());
         }
 
         // GET: Book/Create
@@ -74,18 +57,14 @@ namespace LibraryManagement.Controllers
                 };
                 _bookRepository.Create(book);
                 _bookRepository.Save();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Edit), new { id = book.BookID });
             }
             return View(bookVM);
         }
 
         // GET: Book/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
             var book = await _bookRepository.FindByCondition(m => m.BookID == id)
                 .Include(m => m.Authors).Include(m => m.Stocks).FirstOrDefaultAsync();
@@ -100,11 +79,15 @@ namespace LibraryManagement.Controllers
                 Authors = _authorService.stringifyAuthors(book.Authors),
                 Stocks = book.Stocks.Select(stock => new StockViewModel()
                 {
-                    Borrowed = stock.Borrowed,
+                    //Borrowed = stock.Borrowed,
                     Total = stock.Total,
                     SubsidiaryID = stock.SubsidiaryID
-                })
+                }).ToArray()
             };
+            ViewBag.Subsidiaries = new SelectList(_subsidiaryService
+                .getSubsidiariesList(bookVM.Stocks.Select(s => s.SubsidiaryID))
+                , "Key", "Value");
+                
             return View(bookVM);
         }
 
@@ -117,6 +100,9 @@ namespace LibraryManagement.Controllers
         {
             if (ModelState.IsValid)
             {
+                //empty array is null in POST, We don't want that
+                bookVM.Stocks ??= new StockViewModel[0];
+
                 Book book = _bookRepository.FindByCondition(m => m.BookID == id)
                     .Include(m => m.Stocks).FirstOrDefault();
 
@@ -125,50 +111,79 @@ namespace LibraryManagement.Controllers
                     return NotFound();
                 }
 
-                book.Title = bookVM.Title;
-                book.Publisher = bookVM.Publisher;
-                book.Authors = _authorService.parseAuthors(bookVM.Authors);
-
-                List<Stock> toAdd = new List<Stock>();
-                bool error = false;
-
-                foreach(var stockVM in bookVM.Stocks)
+                //do we add new stock?
+                if (bookVM.StockID != 0)
                 {
-                    stockVM.Error = false;
-
-                    var stock = book.Stocks
-                        .Where(s => s.SubsidiaryID == stockVM.SubsidiaryID).FirstOrDefault();
-                    if(stock == null)
+                    var list = bookVM.Stocks.ToList();
+                    list.Add(new StockViewModel
                     {
-                        toAdd.Add(new Stock()
-                        {
-                            //BookID = id,
-                            SubsidiaryID = stockVM.SubsidiaryID,
-                            Total = stockVM.Total
-                        });
-                    }
+                        SubsidiaryID = bookVM.StockID,
+                        Total = 0,
+                        //Borrowed = 0
+                    });
+                    bookVM.Stocks = list.ToArray();
+                    bookVM.StockID = 0;
+                    goto redisplay;
+                }
+
+                //reset errors to check again later
+                foreach (var stock in bookVM.Stocks)
+                {
+                    stock.Error = false;
+                }
+
+                _bookRepository.LoadCollection(book, b => b.Stocks);
+
+                /*Check for stock that is in an illegal state(i.e. the total went below the borrowed amount)
+                 This is not POST attack proof but since this is accessed only by administrators and this is not
+                 going to be deployed anywhere, no measures against it will be taken*/
+                var illegalStocks = bookVM.Stocks.Where(mstock =>
+                {
+                    var bstock = book.Stocks.FirstOrDefault(bs => bs.SubsidiaryID == mstock.SubsidiaryID);
+                    if (bstock == null)
+                        return false;
                     else
                     {
-                        if(stockVM.Total < stock.Borrowed)
-                        {
-                            error = true;
-                            stockVM.Error = true;
-                            stockVM.Total = stock.Borrowed;
-                        }
+                        return mstock.Total < bstock.Borrowed;
                     }
-                }
-                if (error) {
-                    return View();
-                }
-                foreach(var stock in toAdd)
+                });
+
+                //set errors in this case
+                if (illegalStocks.Count() > 0)
                 {
-                    book.Stocks.Add(stock);
+                    foreach(var illStock in illegalStocks)
+                    {
+                        illStock.Error = true;
+                    }
+                    goto redisplay;
                 }
 
+                //replace stocks
+                book.Stocks = bookVM.Stocks.Where(vm => vm.Total != 0)
+                    .Select(stockVM => new Stock()
+                    {
+                        SubsidiaryID = stockVM.SubsidiaryID,
+                        Total = stockVM.Total,
+                        Borrowed = book.Stocks.Any(s => s.SubsidiaryID == stockVM.SubsidiaryID) ?
+                                    book.Stocks.Where(s => s.SubsidiaryID == stockVM.SubsidiaryID).First().Borrowed
+                                    : 0
+                    }).ToList();
+
+                //setting other values
+                book.Title = bookVM.Title;
+                book.Publisher = bookVM.Publisher;
+                _bookRepository.LoadCollection(book, b => b.Authors);
+                book.Authors = _authorService.parseAuthors(bookVM.Authors);
+
+                //success
                 _bookRepository.Update(book);
                 _bookRepository.Save();
                 return RedirectToAction(nameof(Index));
             }
+            redisplay:
+            ViewBag.Subsidiaries = new SelectList(_subsidiaryService
+                .getSubsidiariesList(bookVM.Stocks.Select(s => s.SubsidiaryID))
+                , "Key", "Value");
             return View(bookVM);
         }
 

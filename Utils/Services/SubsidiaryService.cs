@@ -29,13 +29,22 @@ namespace LibraryManagement.Utils.Services
             return subsidiary.City.Name + " : " + subsidiary.Name;
         }
 
-        public IEnumerable<KeyValuePair<int, string>> getSubsidiariesList()
+        public IEnumerable<KeyValuePair<int, string>> getSubsidiariesList(IEnumerable<int> exclude)
         {
             return _subsidiaryRepository.FindAll().Include(m => m.City)
+                .Where(m => !exclude.Any(x => x == m.SubsidiaryID))
                 .ToArray().Select(s => 
                     KeyValuePair.Create(s.SubsidiaryID, getNamingBySubsidiary(s))
                 );
             
+        }
+
+        public IEnumerable<KeyValuePair<int, string>> getSubsidiariesList()
+        {
+            return _subsidiaryRepository.FindAll().Include(m => m.City)
+                .ToArray().Select(s =>
+                    KeyValuePair.Create(s.SubsidiaryID, getNamingBySubsidiary(s))
+                );
         }
     }
 }

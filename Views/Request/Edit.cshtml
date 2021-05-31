@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit";
+    string disable = User.IsInRole("Administrator") ? "disabled" : "disabled";
 }
 
 <h1>Edit</h1>
@@ -10,27 +11,12 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" asp-route-id="@Context.Request.Query["id"]">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="UserID" class="control-label"></label>
-                <select asp-for="UserID" class="form-control" asp-items="ViewBag.UserID"></select>
-                <span asp-validation-for="UserID" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BookID" class="control-label"></label>
-                <select asp-for="BookID" class="form-control" asp-items="ViewBag.BookID"></select>
-                <span asp-validation-for="BookID" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="SubsidiaryID" class="control-label"></label>
-                <select asp-for="SubsidiaryID" class="form-control" asp-items="ViewBag.SubsidiaryID"></select>
+                <select asp-for="SubsidiaryID" class="form-control" disabled="@User.IsInRole("Administrator")" asp-items="ViewBag.SubsidiaryID"></select>
                 <span asp-validation-for="SubsidiaryID" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RequestDate" class="control-label"></label>
-                <input asp-for="RequestDate" class="form-control" />
-                <span asp-validation-for="RequestDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="BorrowDate" class="control-label"></label>
@@ -39,17 +25,17 @@
             </div>
             <div class="form-group">
                 <label asp-for="ReturnDeadline" class="control-label"></label>
-                <input asp-for="ReturnDeadline" class="form-control" />
+                <input asp-for="ReturnDeadline" disabled="@disable" class="form-control" />
                 <span asp-validation-for="ReturnDeadline" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="ReturnDate" class="control-label"></label>
-                <input asp-for="ReturnDate" class="form-control" />
+                <input asp-for="ReturnDate" disabled="@disable" class="form-control" />
                 <span asp-validation-for="ReturnDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
+                <input asp-for="Status" disabled class="form-control" />
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
             <div class="form-group">

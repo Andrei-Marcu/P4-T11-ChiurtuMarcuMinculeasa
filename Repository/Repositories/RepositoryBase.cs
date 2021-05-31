@@ -52,5 +52,10 @@ namespace LibraryManagement.Repository.Repositories
         {
             DbContext.Entry(entity).Reload();
         }
+
+        public virtual void LoadCollection(T entity, Expression<Func<T, IEnumerable<object>>> navigationProperty)
+        {
+            DbContext.Entry(entity).Collection<object>(navigationProperty).Load();
+        }
     }
 }

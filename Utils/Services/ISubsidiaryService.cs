@@ -13,5 +13,7 @@ namespace LibraryManagement.Utils.Services
         string getNamingBySubsidiary(Subsidiary subsidiary);
 
         IEnumerable<KeyValuePair<int, string>> getSubsidiariesList();
+
+        IEnumerable<KeyValuePair<int, string>> getSubsidiariesList(IEnumerable<int> exclude);
     }
 }

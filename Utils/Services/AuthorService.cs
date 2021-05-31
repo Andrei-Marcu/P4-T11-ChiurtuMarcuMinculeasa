@@ -35,6 +35,10 @@ namespace LibraryManagement.Utils.Services
 
         public string stringifyAuthors(ICollection<Author> authors)
         {
+            if (authors == null)
+            {
+                return String.Empty;
+            }
             return String.Join(", ", authors.Select(author => author.Name));
         }
     }

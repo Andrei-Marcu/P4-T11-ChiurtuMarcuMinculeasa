@@ -9,16 +9,22 @@ namespace LibraryManagement.ViewModels
 {
     public class RequestViewModel
     {
-        public int UserID { get; set; }
-        public int BookID { get; set; }
+        public User User { get; set; }
+        public Book Book { get; set; }
         public int SubsidiaryID { get; set; }
 
         [Required]
-        public DateTime RequestDate { get; set; }
+        [Display(Name = "Date of Borrowing")]
         public DateTime? BorrowDate { get; set; }
+
+        [Display(Name = "Return Deadline")]
         public DateTime? ReturnDeadline { get; set; }
+
+        [Display(Name = "Return Date")]
         public DateTime? ReturnDate { get; set; }
         public int Status { get; set; }
+
+        [Display(Name = "Message(optional)")]
         public string Message { get; set; }
         public ICollection<Message> Messages { get; set; }
     }

@@ -17,5 +17,6 @@ namespace LibraryManagement.Repository.Interfaces
 
         void Reload(T entity);
         void Save();
+        void LoadCollection(T entity, Expression<Func<T, IEnumerable<object>>> navigationProperty);
     }
 }

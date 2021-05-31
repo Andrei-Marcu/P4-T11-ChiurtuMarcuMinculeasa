@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<LibraryManagement.Models.Book>
+@inject LibraryManagement.Utils.Services.IAuthorService AuthorService
 
 @{
     ViewData["Title"] = "Index";
@@ -20,7 +21,7 @@
                 <div class="grid-book-item">
                     @Html.DisplayFor(modelItem => item.Title)
                     <br>
-                    @Html.DisplayFor(modelItem => item.Authors)
+                    @AuthorService.stringifyAuthors(item.Authors)
                     <br>
                     @Html.DisplayFor(modelItem => item.Publisher)
 
@@ -33,7 +34,7 @@
                 <div class="grid-book-item">
                     @Html.DisplayFor(modelItem => item.Title)
                     <br>
-                    @Html.DisplayFor(modelItem => item.Authors)
+                    @AuthorService.stringifyAuthors(item.Authors)
                     <br>
                     @Html.DisplayFor(modelItem => item.Publisher)
 

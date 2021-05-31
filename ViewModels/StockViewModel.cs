@@ -11,8 +11,8 @@ namespace LibraryManagement.ViewModels
         [Required]
         public int SubsidiaryID { get; set; }
         [Required]
+        [Range(0, int.MaxValue, ErrorMessage = "Total must be a positive number")]
         public int Total { get; set; }
-        public int Borrowed { get; set; }
 
         public bool Error { get; set; }
     }
