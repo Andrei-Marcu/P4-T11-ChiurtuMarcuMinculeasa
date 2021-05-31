@@ -8,11 +8,14 @@
 <h1>Book Index</h1>
 
 <div class="grid-book-container">
-    <div class="grid-book-item">
-        <p>
-            <a asp-action="Create">Add Book</a>
-        </p>
-    </div>
+    @if (User.IsInRole("Administrator"))
+    {
+        <div class="grid-book-item">
+            <p>
+                <a asp-action="Create">Add Book</a>
+            </p>
+        </div>
+    }
     @foreach (var item in Model)
     {
         @if (User.IsInRole("Administrator"))
