@@ -98,6 +98,7 @@ namespace LibraryManagement.Controllers
                     BookID = id,
                     SubsidiaryID = requestVM.SubsidiaryID,
                     RequestDate = DateTime.Now,
+                    BorrowDate = requestVM.BorrowDate,
                     Status = 0
                 };
 
@@ -105,7 +106,7 @@ namespace LibraryManagement.Controllers
                 _requestRepository.Save();
 
                 leaveMessage(request, requestVM.Message);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Edit), new { id = request.RequestID});
             }
             ViewData["SubsidiaryID"] = new SelectList(_subsidiaryService.getSubsidiariesList(), "Key", "Value", requestVM.SubsidiaryID);
             return View(requestVM);
