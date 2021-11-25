@@ -22,12 +22,15 @@
         {
             <a asp-action="Edit" asp-route-id="@item.BookID">
                 <div class="grid-book-item">
-                    @Html.DisplayFor(modelItem => item.Title)
-                    <br>
-                    @AuthorService.stringifyAuthors(item.Authors)
-                    <br>
-                    @Html.DisplayFor(modelItem => item.Publisher)
-
+                    <div>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </div>
+                    <div>
+                        @AuthorService.stringifyAuthors(item.Authors)
+                    </div>
+                    <div>
+                        @Html.DisplayFor(modelItem => item.Publisher)
+                    </div>
                 </div>
             </a>
         }
@@ -35,12 +38,15 @@
         {
             <a asp-area="" asp-controller="Request" asp-action="Create" asp-route-id="@item.BookID">
                 <div class="grid-book-item">
-                    @Html.DisplayFor(modelItem => item.Title)
-                    <br>
-                    @AuthorService.stringifyAuthors(item.Authors)
-                    <br>
-                    @Html.DisplayFor(modelItem => item.Publisher)
-
+                    <div class="book-field">
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </div>
+                    <div class="book-field">
+                        @AuthorService.stringifyAuthors(item.Authors)
+                    </div>
+                    <div class="book-field">
+                        @Html.DisplayFor(modelItem => item.Publisher)
+                    </div>
                 </div>
             </a>
         }

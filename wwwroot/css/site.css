@@ -71,9 +71,10 @@ body {
 }
 
 .grid-book-container {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     grid-gap: 10px;
-    grid-template-columns: repeat(auto-fit, 500px);
+    grid-template-columns: repeat(auto-fit, 300px);
     background-color: rgb(255, 255, 255);
     padding: 10px;
     margin-left: auto;
@@ -81,10 +82,18 @@ body {
 }
 
 .grid-book-item {
+    display:table;
+    min-height: 100px;
+    height:100%;
+    width: 300px;
     background-color: rgb(255, 255, 255);
     border: 1px solid rgb(0, 0, 0);
     padding: 20px;
-    font-size: 30px;
+}
+
+.book-field {
+    display:table-row;
+    font-size: 18px;
     text-align: center;
 }
 

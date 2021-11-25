@@ -165,13 +165,19 @@ namespace LibraryManagement.Controllers
 
             if (ModelState.IsValid)
             {
-                request.SubsidiaryID = requestVM.SubsidiaryID;
-                request.BorrowDate = requestVM.BorrowDate;
-                request.ReturnDeadline = requestVM.ReturnDeadline;
-                request.ReturnDate = requestVM.ReturnDate;
+                if (User.IsInRole("Administrator"))
+                {
+                    request.SubsidiaryID = requestVM.SubsidiaryID;
+                    request.BorrowDate = requestVM.BorrowDate;
+                    request.ReturnDeadline = requestVM.ReturnDeadline;
+                    request.ReturnDate = requestVM.ReturnDate;
 
-                _requestRepository.Update(request);
-                _requestRepository.Save();
+                    _requestRepository.Update(request);
+                    _requestRepository.Save();
+
+                    leaveMessage(request, requestVM.Message);
+                    return RedirectToAction(nameof(Index));
+                }
 
                 leaveMessage(request, requestVM.Message);
                 return RedirectToAction(nameof(Index));
