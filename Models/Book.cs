@@ -9,12 +9,16 @@ namespace LibraryManagement.Models
     public class Book
     {
         public int BookID { get; set; }
+
         [Required]
         public string Publisher { get; set; }
+
         [Required]
         public string Title { get; set; }
+        public decimal Price { get; set; }
 
         public ICollection<Author> Authors { get; set; }
         public ICollection<Stock> Stocks { get; set; }
+        public ICollection<Purchase> Purchases { get; set; }
     }
 }

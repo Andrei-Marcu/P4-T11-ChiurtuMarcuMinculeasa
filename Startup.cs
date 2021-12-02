@@ -3,6 +3,8 @@ using LibraryManagement.Data;
 using LibraryManagement.Models;
 using LibraryManagement.Repository.Interfaces;
 using LibraryManagement.Repository.Repositories;
+using LibraryManagement.Service.Interface;
+using LibraryManagement.Service.Services;
 using LibraryManagement.Utils.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -63,12 +65,16 @@ namespace LibraryManagement
             services.AddScoped<IStockRepository, StockRepository>();
             services.AddScoped<ISubsidiaryRepository, SubsidiaryRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IPurchaseRepository, PurchaseRepository>();
 
             services.AddScoped<ICityService, CityService>();
             services.AddScoped<IAuthorService, AuthorService>();
             services.AddScoped<ISubsidiaryService, SubsidiaryService>();
             services.AddScoped<IStockService, StockService>();
             services.AddScoped<IStatusService, StatusService>();
+
+            services.AddScoped<IPaymentService<int>, MockupPaymentService>();
+            services.AddScoped<IPurchaseService<int>, MockupPurchaseService>();
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 

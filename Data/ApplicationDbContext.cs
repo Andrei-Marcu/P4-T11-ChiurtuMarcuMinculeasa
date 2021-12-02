@@ -22,6 +22,7 @@ namespace LibraryManagement.Data
         public DbSet<Request> Requests { get; set; }
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<Subsidiary> Subsidiaries { get; set; }
+        public DbSet<Purchase> Purchases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

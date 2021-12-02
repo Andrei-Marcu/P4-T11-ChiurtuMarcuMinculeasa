@@ -29,14 +29,19 @@
                         @AuthorService.stringifyAuthors(item.Authors)
                     </div>
                     <div>
-                        @Html.DisplayFor(modelItem => item.Publisher)
+                        <div>
+                            @Html.DisplayFor(modelItem => item.Publisher)
+                        </div>
+                        <div style="display:inline;">
+                            @Html.DisplayFor(modelItem => item.Price)
+                        </div>
                     </div>
                 </div>
             </a>
         }
         else
         {
-            <a asp-area="" asp-controller="Request" asp-action="Create" asp-route-id="@item.BookID">
+            <a asp-area="" asp-controller="Purchase" asp-action="Create" asp-route-bookid="@item.BookID">
                 <div class="grid-book-item">
                     <div class="book-field">
                         @Html.DisplayFor(modelItem => item.Title)
@@ -45,7 +50,12 @@
                         @AuthorService.stringifyAuthors(item.Authors)
                     </div>
                     <div class="book-field">
-                        @Html.DisplayFor(modelItem => item.Publisher)
+                        <span>
+                            @Html.DisplayFor(modelItem => item.Publisher)
+                        </span>
+                        <span style="float:right;">
+                            @Html.DisplayFor(modelItem => item.Price) lei
+                        </span>
                     </div>
                 </div>
             </a>
