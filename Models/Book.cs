@@ -20,5 +20,6 @@ namespace LibraryManagement.Models
         public ICollection<Author> Authors { get; set; }
         public ICollection<Stock> Stocks { get; set; }
         public ICollection<Purchase> Purchases { get; set; }
+        public ICollection<User> WishedBy { get; set; }
     }
 }

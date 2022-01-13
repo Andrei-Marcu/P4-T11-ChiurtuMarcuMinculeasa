@@ -18,6 +18,6 @@ namespace LibraryManagement.Models
 
         public City City { get; set; }
         public ICollection<Request> Requests { get; set; }
-
-}
+        public ICollection<Book> Wishlist { get; set; }
+    }
 }

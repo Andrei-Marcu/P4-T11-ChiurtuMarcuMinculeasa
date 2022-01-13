@@ -1,0 +1,23 @@
+﻿@model LibraryManagement.Models.Cart
+
+<tr>
+    <td>
+        @Html.DisplayFor(modelItem => Model.Book.Title)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => Model.Book.Price)
+    </td>
+    <td>
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="BookID" />
+            <input type="hidden" asp-for="UserID" />
+            <span asp-validation-for="Quantity" class="text-danger"></span>
+            <input asp-for="Quantity" class="form-control" />
+            <input type="submit" class="d-none" />
+        </form>
+    </td>
+    <td>
+        @(Model.Book.Price * Model.Quantity)
+    </td>
+</tr>

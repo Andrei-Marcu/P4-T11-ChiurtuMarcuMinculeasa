@@ -1,3 +1,4 @@
+using LibraryManagement.Config;
 using LibraryManagement.Controllers;
 using LibraryManagement.Data;
 using LibraryManagement.Models;
@@ -66,6 +67,7 @@ namespace LibraryManagement
             services.AddScoped<ISubsidiaryRepository, SubsidiaryRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+            services.AddScoped<ICartRepository, CartRepository>();
 
             services.AddScoped<ICityService, CityService>();
             services.AddScoped<IAuthorService, AuthorService>();
@@ -86,6 +88,13 @@ namespace LibraryManagement
                 .RequireAuthenticatedUser()
                 .Build();
             });
+
+            services.AddOptions();
+
+            var stripeConfig = new ConfigurationBuilder().AddJsonFile("Properties\\stripe.json", optional: true, reloadOnChange: true).Build().GetSection("Stripe");
+
+            //services.Configure<StripeConfig>(stripeConfig);
+            Stripe.StripeConfiguration.ApiKey = stripeConfig.GetValue<string>("SecretKey");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

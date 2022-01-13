@@ -5,16 +5,18 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Book Index</h1>
+<h1>Book Index<i class="bi bi-star-fill"></i></h1>
 
 <div class="grid-book-container">
     @if (User.IsInRole("Administrator"))
     {
-        <div class="grid-book-item">
-            <p>
-                <a asp-action="Create">Add Book</a>
-            </p>
-        </div>
+        <a asp-action="Create">
+            <div class="grid-book-item">
+                <p >
+                    Add Book
+                </p>
+            </div>
+        </a>
     }
     @foreach (var item in Model)
     {
@@ -41,24 +43,38 @@
         }
         else
         {
-            <a asp-area="" asp-controller="Purchase" asp-action="Create" asp-route-bookid="@item.BookID">
+            @*<a asp-area="" asp-controller="Purchase" asp-action="Create" asp-route-bookid="@item.BookID">*@
+            
+            <div>
                 <div class="grid-book-item">
+                    <a asp-controller="Cart" asp-action="Create" asp-route-bookid="@item.BookID">
+                        <div class="book-field">
+                            @Html.DisplayFor(modelItem => item.Title)
+                        </div>
+                        <div class="book-field">
+                            @AuthorService.stringifyAuthors(item.Authors)
+                        </div>
+                    </a>
                     <div class="book-field">
-                        @Html.DisplayFor(modelItem => item.Title)
-                    </div>
-                    <div class="book-field">
-                        @AuthorService.stringifyAuthors(item.Authors)
-                    </div>
-                    <div class="book-field">
+                        @if (User.IsInRole("User"))
+                        {
+                            <span class="float-left">
+                                <a asp-action="ToggleWish" asp-route-bookid="@item.BookID" asp-route-inlist="@ViewBag.inList">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="@(ViewBag.Wishlist.Contains(item.BookID) ? "gold" : "gray")"  style="vertical-align:text-top" class="bi bi-star-fill" viewBox="0 0 16 16">
+                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
+                                    </svg>
+                                </a>
+                            </span>
+                        }
                         <span>
                             @Html.DisplayFor(modelItem => item.Publisher)
                         </span>
-                        <span style="float:right;">
+                        <span class="float-right">
                             @Html.DisplayFor(modelItem => item.Price) lei
                         </span>
                     </div>
                 </div>
-            </a>
+            </div>
         }
     }
 </div>

@@ -3,6 +3,7 @@ using LibraryManagement.Repository.Interfaces;
 using LibraryManagement.Utils.Services;
 using LibraryManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,29 +13,77 @@ using System.Threading.Tasks;
 
 namespace LibraryManagement.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize]
     public class BookController : Controller
     {
         //private readonly ApplicationDbContext _context;
         private readonly IBookRepository _bookRepository;
         private readonly IAuthorService _authorService;
         private readonly ISubsidiaryService _subsidiaryService;
+        private readonly UserManager<User> _userManager;
+        private readonly IUserRepository _userRepository;
 
-        public BookController(IBookRepository bookRepository, IAuthorService authorService, ISubsidiaryService subsidiaryService)
+        public BookController(IBookRepository bookRepository,
+            IAuthorService authorService,
+            ISubsidiaryService subsidiaryService,
+            UserManager<User> userManager,
+            IUserRepository userRepository)
         {
             _bookRepository = bookRepository;
             _authorService = authorService;
             _subsidiaryService = subsidiaryService;
+            _userManager = userManager;
+            _userRepository = userRepository;
         }
+
+
 
         // GET: Book
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                _userRepository.LoadCollection(user, user => user.Wishlist);
+
+                ViewBag.wishlist = new HashSet<int>(user.Wishlist.Select(w => w.BookID));
+                ViewBag.inList = false;
+            }
             return View(await _bookRepository.FindAll().Include(b => b.Authors).ToListAsync());
         }
 
+        public async Task<IActionResult> Wishlist()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            _userRepository.LoadCollection(user, u => u.Wishlist);
+            foreach(var book in user.Wishlist)
+            {
+                _bookRepository.LoadCollection(book, b => b.Authors);
+            }
+
+            ViewBag.wishlist = new HashSet<int>(user.Wishlist.Select(w => w.BookID));
+            ViewBag.inList = true;
+            return View("Index", user.Wishlist.ToList());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ToggleWish(int bookId, bool inList)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            _userRepository.LoadCollection(user, user => user.Wishlist);
+            Book book = _bookRepository.FindByCondition(b => b.BookID == bookId).FirstOrDefault();
+            if(!user.Wishlist.Remove(book))
+            {
+                user.Wishlist.Add(book);
+            }
+            _userRepository.Save();
+
+            return RedirectToAction(inList ? "Wishlist" : "Index");
+        }
+
         // GET: Book/Create
+        [Authorize(Roles = "Administrator")]
         public IActionResult Create()
         {
             return View();
@@ -63,6 +112,7 @@ namespace LibraryManagement.Controllers
         }
 
         // GET: Book/Edit/5
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int id)
         {
 
@@ -96,6 +146,7 @@ namespace LibraryManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Edit(int id, BookViewModel bookVM)
         {
             if (ModelState.IsValid)
@@ -188,6 +239,7 @@ namespace LibraryManagement.Controllers
         }
 
         // GET: Book/Delete/5
+        [Authorize(Roles = "Administrator")]
         public IActionResult Delete(int? id)
         {
             if (id == null)

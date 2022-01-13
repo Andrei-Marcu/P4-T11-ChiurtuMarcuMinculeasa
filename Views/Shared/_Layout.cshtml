@@ -21,16 +21,43 @@
                         <li class="nav-item">
                             @if (Context.Request.Path.ToString().Equals("/", StringComparison.OrdinalIgnoreCase))
                             {
-                                    <a class="nav-link text-black-50">Inventory</a>
+                                <a class="nav-link text-black-50">Inventory</a>
                             }
                             else
                             {
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Inventory</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Inventory</a>
                             }
                         </li>
-                        <li class="nav-item">
-                            @if (User.IsInRole("Administrator"))
-                            {
+                        @if (User.IsInRole("User"))
+                        {
+                            <li class="nav-item">
+                                @if (Context.Request.Path.ToString().Equals("/Cart", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <a class="nav-link text-black-50">Cart</a>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
+                                }
+                            </li>
+                        }
+                        @if (User.IsInRole("User"))
+                        {
+                            <li class="nav-item">
+                                @if (Context.Request.Path.ToString().Equals("/Book/Wishlist", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <a class="nav-link text-black-50">Wishlist</a>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Wishlist">Wishlist</a>
+                                }
+                            </li>
+                        }
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+
                                 @if (Context.Request.Path.ToString().Equals("/Request", StringComparison.OrdinalIgnoreCase))
                                 {
                                     <a class="nav-link text-black-50">Request Management</a>
@@ -39,8 +66,8 @@
                                 {
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Request" asp-action="Index">Request Management</a>
                                 }
-                            }
-                        </li>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

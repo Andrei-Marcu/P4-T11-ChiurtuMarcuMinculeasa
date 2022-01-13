@@ -1,0 +1,53 @@
+﻿@model IEnumerable<LibraryManagement.Models.Cart>
+
+@{
+    ViewData["Title"] = "Index";
+    decimal total = 0;
+   @foreach (var item in Model)
+   {
+       total += item.Quantity * item.Book.Price;
+   }
+}
+
+<h1>Cart</h1>
+
+<p>
+    <a asp-controller="Book" asp-action="Index">Back to books</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Book)
+            </th>
+            <th>
+                Unit @Html.DisplayNameFor(model => model.Book.Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Quantity)
+            </th>
+            <th>
+                Total @Html.DisplayNameFor(model => model.Book.Price)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <partial name="_CartItem" model="item" />
+        }
+    <td>
+    </td>
+    <td>
+    </td>
+    <td>
+        Total:
+    </td>
+    <td>
+        @total
+    </td>
+    </tbody>
+</table>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
